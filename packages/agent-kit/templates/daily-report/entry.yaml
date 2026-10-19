@@ -1,0 +1,9 @@
+id: daily-report
+name: 일일 리포트
+description: 폴더의 CSV를 요약해 마크다운 리포트를 만들어요
+adapter: command
+capabilities: [리포트 작성, 메일 발송]
+options:
+  command: ["python3", "agent.py"]
+  cwd: ~/reports
+policy: dev-default

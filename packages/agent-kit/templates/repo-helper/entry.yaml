@@ -1,0 +1,8 @@
+id: repo-helper
+name: 레포 도우미
+description: 이 저장소의 버그를 고치고 테스트를 돌려요
+adapter: claude-agent-sdk
+capabilities: [코드 수정, 테스트 실행]
+options:
+  cwd: ~/dev/my-repo
+policy: dev-default

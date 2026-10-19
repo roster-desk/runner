@@ -1,0 +1,10 @@
+{
+  "name": "roster-desk-runner",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test"
+  }
+}

@@ -1,0 +1,12 @@
+# repo-helper
+# Runner가 claude-agent-sdk 어댑터로 이 저장소를 연다.
+# 모델 호출은 사용자가 Runner를 켠 뒤에만 일어난다.
+
+id: repo-helper
+name: 레포 도우미
+description: 이 저장소의 버그를 고치고 테스트를 돌려요
+adapter: claude-agent-sdk
+capabilities: [코드 수정, 테스트 실행]
+options:
+  cwd: ~/dev/my-repo
+policy: dev-default

@@ -1,0 +1,9 @@
+id: file-tidy
+name: 파일 정리
+description: 다운로드 폴더 정리를 제안해요
+adapter: command
+capabilities: [파일 이동]
+options:
+  command: ["npx", "tsx", "agent.ts"]
+  cwd: ~/Downloads
+policy: dev-default
