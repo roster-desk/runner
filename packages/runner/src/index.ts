@@ -2,15 +2,21 @@ import readline from "node:readline";
 import WebSocket from "ws";
 import { credentialDir } from "./credential-store.js";
 import { publishRoster, watchRoster } from "./config/watch.js";
-import { createTurnBook, handleTurnFrame } from "./turns/cancel.js";
+import { installAdapters } from "./adapters/install.js";
+import type { AdapterAgent } from "./adapters/registry.js";
+import { readPolicy, savePhoneGrant } from "./config/grant.js";
+import { HubToRunner, toB64 } from "@rosterdesk/protocol";
+import { createSealer } from "./e2e/sealer.js";
+import { createTurnEngine } from "./turns/engine.js";
 import { ensureRunnerKeys } from "./keys/keystore.js";
 import {
   acquireSingleInstance,
+  noteApproval,
   qrDataUrl,
   setDesktopDecisionHandler,
   setDesktopStatus,
   startDesktop,
-} from "./desktop.js";
+} from "./ui/server.js";
 import { createConfirmController, type RunnerPubs } from "./pairing/confirm.js";
 import { helloFrame, loadRunnerId, offerFrame, proofFrame, saveRunnerId, clearRunnerId } from "./pairing/session.js";
 import { resolveHubUrl } from "./cli/hub.js";
@@ -69,6 +75,22 @@ async function showQr(payload: unknown) {
 
 let stopWatch: (() => void) | null = null;
 let activeSocket: WebSocket | null = null;
+let rosterAgents: AdapterAgent[] = [];
+
+const registry = installAdapters();
+let sealer: ReturnType<typeof createSealer> | null = null;
+const engine = createTurnEngine({
+  send: (frame) => sendToHub(sealer ? sealer.outgoing(frame) : frame),
+  agents: () => rosterAgents,
+  policy: () => readPolicy(credentialDir()),
+  createAdapter: (agent) => registry.create(agent),
+  saveGrant: (grant) => savePhoneGrant(grant, credentialDir()),
+  onApproval: noteApproval,
+});
+
+function showAgents(agents: AdapterAgent[]) {
+  setDesktopStatus({ agents: agents.map((agent) => ({ id: agent.id, name: agent.name, adapterKind: agent.adapter })) });
+}
 
 function publishCatalog(ws: WebSocket) {
   const roster = publishRoster(credentialDir());
@@ -76,16 +98,20 @@ function publishCatalog(ws: WebSocket) {
     for (const error of roster.errors) console.error(`[runner] ${error}`);
     return;
   }
+  rosterAgents = roster.agents;
+  showAgents(roster.agents);
   ws.send(JSON.stringify(roster.frame));
   stopWatch?.();
-  stopWatch = watchRoster(credentialDir(), (frame) => {
+  stopWatch = watchRoster(credentialDir(), (frame, agents) => {
+    rosterAgents = agents;
+    showAgents(agents);
+    void engine.reload();
     if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(frame));
   });
 }
 
 function connect() {
   const ws = new WebSocket(hubWsUrl);
-  const turns = createTurnBook();
   activeSocket = ws;
   armHeartbeat(ws);
 
@@ -173,45 +199,38 @@ function connect() {
 
     if (msg.type === "ack") return;
 
-    const turn = handleTurnFrame(msg.type, msg.data, turns);
-    if (turn.handled) {
-      if ("status" in turn && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ v: 2, type: "turn.status", ts: Date.now(), data: turn.status }));
+    const hub = HubToRunner.safeParse({ type: msg.type, data: msg.data ?? {} });
+    if (hub.success && hub.data.type === "devices.sync") {
+      sealer?.setDevices(hub.data.data.devices);
+      return;
+    }
+
+    if (hub.success && hub.data.type === "turn.start") {
+      const turn = hub.data.data;
+      const text = sealer ? sealer.openTurnText(turn.text, turn.encVersion) : turn.text;
+      if (text === null) {
+        console.error("[runner] 이 PC에서 열 수 없는 지시를 받았어요 (등록되지 않은 기기 키)");
+        sendToHub({ v: 2, id: crypto.randomUUID(), type: "turn.status", ts: Date.now(), data: { turnId: turn.turnId, conversationId: turn.conversationId, state: "error" } });
+        return;
       }
+      void engine.start({ ...turn, text });
       return;
     }
 
-    if (msg.type === "chat.user") {
-      const sessionId = String(msg.sessionId ?? "");
-      const text = String(msg.payload?.text ?? "");
-      console.log(`[runner] ← mobile: ${text}`);
-      const reply = `PC 에이전트 응답: ${text}`;
-      ws.send(
-        JSON.stringify({
-          type: "chat.done",
-          pairId,
-          sessionId,
-          payload: { text: reply },
-        }),
-      );
+    if (hub.success && hub.data.type === "turn.cancel") {
+      engine.cancel(hub.data.data.turnId);
       return;
     }
 
-    if (msg.type === "hitl.decision") {
-      const decision = String(msg.payload?.decision ?? "");
-      ws.send(
-        JSON.stringify({
-          type: "chat.done",
-          pairId,
-          sessionId: String(msg.sessionId ?? ""),
-          payload: {
-            text:
-              decision === "approved"
-                ? "도구 실행 완료 (PC에서 처리됨)"
-                : "도구 실행이 거절되었습니다.",
-          },
-        }),
-      );
+    if (hub.success && hub.data.type === "approval.decision") {
+      engine.decide(hub.data.data);
+      return;
+    }
+
+    if (msg.type === "runner.revoked") {
+      void engine.dispose();
+      clearRunnerId();
+      setDesktopStatus({ phase: "revoked", detail: "PC 연동이 해제됐어요. 다시 스캔하세요", qr: null });
     }
   });
 
@@ -240,6 +259,7 @@ export async function startRunner() {
 async function openKeys() {
   const storedKeys = await ensureRunnerKeys();
   runnerPubs = storedKeys;
+  sealer = createSealer({ boxPub: toB64(storedKeys.boxPublicKey), boxSecret: storedKeys.boxSecretKey }, () => pairId ?? loadRunnerId());
   signSecret = storedKeys.signSecretKey;
   confirm = createConfirmController({
     keys: storedKeys,

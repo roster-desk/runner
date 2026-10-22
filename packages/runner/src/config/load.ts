@@ -7,7 +7,7 @@ import type { AdapterAgent } from "../adapters/registry.js";
 import { AgentFile, PolicyFile } from "./schema.js";
 import { checkSchema, issueLine } from "./yaml.js";
 
-export type CatalogAgent = { id: string; name: string; description: string; capabilities: string[] };
+export type CatalogAgent = { id: string; name: string; description: string; capabilities: string[]; adapterKind: string };
 
 export type Roster =
   | { ok: true; agents: AdapterAgent[]; catalog: CatalogAgent[] }
@@ -50,6 +50,7 @@ function toCatalog(agent: AdapterAgent): CatalogAgent {
     name: agent.name,
     description: agent.description,
     capabilities: agent.capabilities,
+    adapterKind: agent.adapter,
   };
 }
 

@@ -37,7 +37,9 @@ The terminal prints a QR code. Scan it in the phone app, then press `y` on the P
 | `roster-desk policy show` | 정책 출력 |
 | `roster-desk logs` | 최근 로그 |
 
-`service install`은 아직 자동 시작을 넣지 않습니다. 안내는 명령이 출력합니다.
+`service install`은 로그인할 때 Runner를 켭니다. macOS는 launchd, Windows는 작업 스케줄러, Linux는 systemd 사용자 유닛을 등록합니다. `service uninstall`은 그 등록을 지웁니다.
+
+`service install` starts the Runner when you log in. macOS uses launchd, Windows uses Task Scheduler, and Linux uses a systemd user unit. `service uninstall` removes that registration.
 
 ## 라이선스 / License
 

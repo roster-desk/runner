@@ -24,6 +24,7 @@ export const PairingClaimRequest = z.object({
 export const SendMessageRequest = z.object({
   clientId: uuid,
   text: z.string().min(1),
+  encVersion: z.literal(1).optional(),
 });
 
 export const MessageV2 = z.object({

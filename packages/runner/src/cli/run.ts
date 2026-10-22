@@ -8,6 +8,7 @@ import { startRunner, useDesktop, useHubUrl } from "../index.js";
 import { HELP, parseArgs, type CliArgs } from "./args.js";
 import { resolveHubUrl, RUNNER_VERSION, updateNotice } from "./hub.js";
 import { confirmOverwrite, listAgents, recentLogs, showPolicy } from "./local.js";
+import { installService, uninstallService } from "../service/install.js";
 
 export async function runCli(argv: string[]) {
   const args = parseArgs(argv);
@@ -29,7 +30,7 @@ async function localCommand(args: CliArgs) {
   }
   if (args.command === "policy" && args.rest[0] === "show") return print(showPolicy(credentialDir()));
   if (args.command === "logs") return print(recentLogs(credentialDir()));
-  if (args.command === "service") return print("로그인할 때 자동으로 켜는 기능은 아직 없어요.");
+  if (args.command === "service") return serviceCommand(args.rest[0]);
   if (args.command === "unpair") return unpair();
   return null;
 }
@@ -77,6 +78,18 @@ async function addAgent(rest: string[]) {
 function print(text: string) {
   console.log(text);
   return 0;
+}
+
+function serviceCommand(action: string | undefined) {
+  if (action === "install") return finish(installService());
+  if (action === "uninstall") return finish(uninstallService());
+  console.log("roster-desk service install 또는 uninstall 을 쓰세요.");
+  return 1;
+}
+
+function finish(result: { ok: boolean; message: string }) {
+  console.log(result.message);
+  return result.ok ? 0 : 1;
 }
 
 function question(rl: readline.Interface, prompt: string) {

@@ -36,7 +36,8 @@ export const HELP = `roster-desk <명령>
   doctor                     Node, 키 저장, SDK 자격 점검
   policy show                정책 파일 출력
   logs                       최근 로그
-  service install            로그인 시 자동 시작 (준비 중)
+  service install            로그인하면 Runner가 켜집니다
+  service uninstall          자동 시작을 지웁니다
 
 start connects to the Hub. The default address is production.
 `;

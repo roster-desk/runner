@@ -13,3 +13,5 @@ export {
   ApprovalDecisionRequest,
 } from "./rest.js";
 export { sha256, computeSas, formatSas } from "./sas.js";
+export * as tokens from "./design-tokens.js";
+export { ENC_VERSION, seal, open, toB64, fromB64, runnerRecipientId, type Envelope, type Recipient } from "./e2e.js";

@@ -26,7 +26,7 @@ type Entry = {
   description: string;
   adapter: "echo" | "command" | "claude-agent-sdk" | "http";
   capabilities: string[];
-  options: { cwd?: string; command?: string[] };
+  options: { cwd?: string; command?: string[]; url?: string };
   policy: string;
 };
 
@@ -51,6 +51,39 @@ export function addTemplate(dir: string, templateId: string, cwd: string) {
   const roster = readRoster(dir);
   if (!roster.ok) return { ok: false as const, message: roster.errors[0] ?? "설정을 읽지 못했어요" };
   return { ok: true as const, message: `${entry.name}을 추가했어요. 폰 목록에 곧 나타나요.`, catalog: roster.catalog };
+}
+
+const AGENT_ID = /^[a-z0-9-]{2,40}$/;
+
+/** 노코드 도구(n8n, Make 등) 웹훅을 에이전트로 붙인다 (RD-211 http 어댑터). */
+export function addHttpAgent(dir: string, input: { id: string; name: string; url: string; description?: string }) {
+  if (!AGENT_ID.test(input.id)) return { ok: false as const, message: "id는 소문자, 숫자, 하이픈으로 2~40자여야 해요" };
+  if (!input.name.trim() || input.name.length > 40) return { ok: false as const, message: "이름을 1~40자로 적어 주세요" };
+  if (!/^https?:\/\/\S+$/.test(input.url)) return { ok: false as const, message: "웹훅 주소는 http(s)://로 시작해야 해요" };
+  fs.mkdirSync(dir, { recursive: true });
+  ensurePolicy(dir);
+  const agents = readAgents(path.join(dir, "agents.yaml"));
+  if (agents.some((agent) => agent.id === input.id)) return { ok: false as const, message: "이미 있는 에이전트예요" };
+  agents.push({
+    id: input.id,
+    name: input.name.trim(),
+    description: (input.description ?? "웹훅으로 연결한 에이전트").slice(0, 200),
+    adapter: "http",
+    capabilities: [],
+    options: { url: input.url } as Entry["options"],
+    policy: "dev-default",
+  });
+  fs.writeFileSync(path.join(dir, "agents.yaml"), stringify({ version: 1, agents }));
+  const roster = readRoster(dir);
+  if (!roster.ok) return { ok: false as const, message: roster.errors[0] ?? "설정을 읽지 못했어요" };
+  return { ok: true as const, message: `${input.name}을 추가했어요. 폰 목록에 곧 나타나요.` };
+}
+
+export function templateList() {
+  return templateIds().flatMap((id) => {
+    const entry = loadEntry(id);
+    return entry ? [{ id, name: entry.name, description: entry.description, defaultCwd: String(entry.options.cwd ?? "") }] : [];
+  });
 }
 
 export async function runAgentsAdd(argv: string[], dir: string, ask: (prompt: string) => Promise<string>) {

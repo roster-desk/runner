@@ -1,4 +1,4 @@
-export const RUNNER_VERSION = "0.1.0";
+export const RUNNER_VERSION = "0.2.0";
 export const DEFAULT_HUB = "wss://roster-desk-hub.fly.dev/runner";
 
 export function resolveHubUrl(override?: string, env: NodeJS.ProcessEnv = process.env) {

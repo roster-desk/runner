@@ -9,6 +9,7 @@ export const AgentDescriptor = z.object({
   name: z.string(),
   description: z.string().optional(),
   capabilities: z.array(z.string()).optional(),
+  adapterKind: z.string().optional(),
 });
 
 export const RunnerToHub = z.discriminatedUnion("type", [
@@ -43,7 +44,7 @@ export const RunnerToHub = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("message.delta"),
-    data: z.object({ turnId: uuid, conversationId: uuid, text: z.string() }),
+    data: z.object({ turnId: uuid, conversationId: uuid, text: z.string(), encVersion: z.literal(1).optional() }),
   }),
   z.object({
     type: z.literal("message.final"),
@@ -53,6 +54,7 @@ export const RunnerToHub = z.discriminatedUnion("type", [
       clientId: uuid,
       text: z.string(),
       kind: z.enum(["text", "status", "tool", "approval", "error"]),
+      encVersion: z.literal(1).optional(),
     }),
   }),
   z.object({
@@ -118,7 +120,12 @@ export const HubToRunner = z.discriminatedUnion("type", [
       clientId: uuid,
       text: z.string(),
       sessionKey: z.string(),
+      encVersion: z.literal(1).optional(),
     }),
+  }),
+  z.object({
+    type: z.literal("devices.sync"),
+    data: z.object({ devices: z.array(z.object({ deviceId: uuid, boxPub: z.string() })) }),
   }),
   z.object({ type: z.literal("turn.cancel"), data: z.object({ turnId: uuid }) }),
   z.object({

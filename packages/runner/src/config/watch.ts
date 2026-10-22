@@ -1,8 +1,12 @@
 import fs from "node:fs";
 import { credentialDir } from "../credential-store.js";
+import type { AdapterAgent } from "../adapters/registry.js";
 import { catalogFrame, readRoster, type CatalogAgent } from "./load.js";
 
-export function watchRoster(dir = credentialDir(), send: (frame: ReturnType<typeof catalogFrame>) => void) {
+export function watchRoster(
+  dir = credentialDir(),
+  send: (frame: ReturnType<typeof catalogFrame>, agents: AdapterAgent[]) => void,
+) {
   fs.mkdirSync(dir, { recursive: true });
   const emit = () => {
     const roster = readRoster(dir);
@@ -10,7 +14,7 @@ export function watchRoster(dir = credentialDir(), send: (frame: ReturnType<type
       for (const error of roster.errors) console.error(`[runner] ${error}`);
       return;
     }
-    send(catalogFrame(roster.catalog));
+    send(catalogFrame(roster.catalog), roster.agents);
   };
   const watcher = fs.watch(dir, () => emit());
   return () => watcher.close();

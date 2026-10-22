@@ -1,17 +1,19 @@
 # Roster Desk Runner
 
-PC에서 에이전트를 실행하는 공개 패키지입니다. Hub와 폰 앱은 이 저장소에 없습니다.
+The part of Roster Desk that runs on your own computer. It connects your agents to the Roster Desk app on your phone, so you can instruct them and approve their tool calls from anywhere.
 
-Public packages for running agents on your PC. The Hub and the phone app are not in this repository.
-
-| 패키지 | npm |
-|--------|-----|
-| `apps/runner` | `@rosterdesk/runner` |
-| `packages/agent-kit` | `@rosterdesk/agent-kit` |
-| `packages/protocol` | `@rosterdesk/protocol` |
+내 PC에서 도는 Roster Desk 부분입니다. 내 에이전트를 폰 앱과 연결해, 어디서든 지시하고 도구 실행을 승인할 수 있게 합니다.
 
 ```bash
 npx @rosterdesk/runner start
 ```
 
-MIT.
+| Package | |
+|---|---|
+| `packages/runner` | CLI (`roster-desk`) |
+| `packages/agent-kit` | Helpers for writing a JSONL agent |
+| `packages/protocol` | Shared message schemas and the 6-digit pairing check (SAS) |
+
+The Hub never runs your model and never holds your keys. Tool permissions live in `~/.roster-desk/policy.yaml` on this computer.
+
+License: MIT
