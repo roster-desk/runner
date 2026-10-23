@@ -63,8 +63,8 @@ describe("command adapter", () => {
   it("ignores a bad line and still finishes", async () => {
     const logs: string[] = [];
     const script = ready.replace(
-      "if (msg.type === \"turn\") {",
-      "if (msg.type === \"turn\") { process.stdout.write(\"not-json\\n\");",
+      'if (msg.type === "turn") {',
+      'if (msg.type === "turn") { process.stdout.write("not-json\\n");',
     );
     const run = harness();
     const adapter = createCommandAdapter(agent(script), { log: (line) => logs.push(line) });
@@ -131,7 +131,8 @@ describe("command adapter", () => {
       "../../../../packages/agent-kit/examples/python/agent.py",
     );
     const run = harness();
-    const adapter = createCommandAdapter(agent("", ["python3", file]));
+    const python = process.platform === "win32" ? "python" : "python3";
+    const adapter = createCommandAdapter(agent("", [python, file]));
     await adapter.runTurn("오늘 리포트 만들어 줘", run.ctx);
     expect(run.events.at(-1)).toEqual({ type: "final", text: "리포트를 보냈어요." });
     await adapter.dispose();

@@ -24,8 +24,9 @@ describe("fileCredentialStore", () => {
     });
     const loaded = await store.load();
     expect(loaded?.credentialId).toBe("cred-1");
-    const mode = fs.statSync(path.join(dir, "credential.json")).mode & 0o777;
-    expect(mode).toBe(0o600);
+    // Windows에는 POSIX 권한 비트가 없다.
+    if (process.platform !== "win32")
+      expect(fs.statSync(path.join(dir, "credential.json")).mode & 0o777).toBe(0o600);
     await store.clear();
     expect(await store.load()).toBeNull();
   });
