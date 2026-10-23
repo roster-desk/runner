@@ -3,6 +3,7 @@
 ## 0.2.1 (2026-10-24)
 
 - Default Hub is now `wss://hub.kkumteul.co.kr/runner`.
+- Command agents get UTF-8 stdio by default (`PYTHONIOENCODING`, `PYTHONUTF8`), so Python agents that print Korean work on Windows.
 
 ## 0.2.0 (2026-10-22)
 

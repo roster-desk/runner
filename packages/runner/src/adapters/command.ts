@@ -185,7 +185,8 @@ function commandOf(agent: AdapterAgent) {
   if (!Array.isArray(command) || typeof command[0] !== "string") throw new Error("command_required");
   const cwd = typeof agent.options.cwd === "string" ? expandHome(agent.options.cwd) : undefined;
   const extra = agent.options.env;
-  const env = { ...process.env };
+  // JSONL은 UTF-8이다. Windows의 Python은 파이프 출력이 cp1252라 한국어를 쓰다 죽으므로 기본값을 준다.
+  const env: NodeJS.ProcessEnv = { PYTHONIOENCODING: "utf-8", PYTHONUTF8: "1", ...process.env };
   if (extra && typeof extra === "object") {
     for (const [key, value] of Object.entries(extra)) if (typeof value === "string") env[key] = expandHome(value);
   }
