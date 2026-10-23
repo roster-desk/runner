@@ -1,5 +1,5 @@
-export const RUNNER_VERSION = "0.2.0";
-export const DEFAULT_HUB = "wss://roster-desk-hub.fly.dev/runner";
+export const RUNNER_VERSION = "0.2.1";
+export const DEFAULT_HUB = "wss://hub.kkumteul.co.kr/runner";
 
 export function resolveHubUrl(override?: string, env: NodeJS.ProcessEnv = process.env) {
   return override?.trim() || env.HUB_WS_URL?.trim() || env.HUB_WS?.trim() || DEFAULT_HUB;

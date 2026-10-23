@@ -11,7 +11,7 @@ describe("runner cli", () => {
     expect(resolveHubUrl(undefined, {})).toBe(DEFAULT_HUB);
     expect(parseArgs(["start", "--hub", "ws://localhost:3100/runner", "--ui"]).hub).toBe("ws://localhost:3100/runner");
     expect(parseArgs(["start", "--ui"]).ui).toBe(true);
-    expect(healthUrl(DEFAULT_HUB)).toBe("https://roster-desk-hub.fly.dev/health");
+    expect(healthUrl(DEFAULT_HUB)).toBe("https://hub.kkumteul.co.kr/health");
   });
 
   it("notices when this build is older than the hub", async () => {

@@ -25,7 +25,7 @@ describe("v2 schemas", () => {
     roundTrip(QrPayloadV2, {
       v: 2,
       sid: id,
-      hub: "https://roster-desk-hub.fly.dev",
+      hub: "https://hub.kkumteul.co.kr",
       rpk: "abc",
       rsk: "def",
       exp: 1,

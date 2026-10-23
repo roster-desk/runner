@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2026-10-24)
+
+- Default Hub is now `wss://hub.kkumteul.co.kr/runner`.
+
 ## 0.2.0 (2026-10-22)
 
 - End-to-end encryption: messages and approval summaries are sealed per device; the Hub stores ciphertext only.

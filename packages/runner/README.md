@@ -12,9 +12,9 @@ Node.js 20 이상이 필요합니다. Node.js 20 or newer is required.
 npx @rosterdesk/runner start
 ```
 
-기본 Hub는 `wss://roster-desk-hub.fly.dev/runner`입니다. 다른 주소는 `--hub`로 바꿉니다.
+기본 Hub는 `wss://hub.kkumteul.co.kr/runner`입니다. 다른 주소는 `--hub`로 바꿉니다.
 
-The default Hub is `wss://roster-desk-hub.fly.dev/runner`. Pass `--hub` to use another address.
+The default Hub is `wss://hub.kkumteul.co.kr/runner`. Pass `--hub` to use another address.
 
 ```bash
 npx @rosterdesk/runner start --hub ws://localhost:3100/runner --ui
